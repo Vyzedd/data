@@ -1,11 +1,11 @@
-import Ember from 'ember';
-import { assert } from '@ember/debug';
-
-const EmberError = Ember.Error;
+import { makeArray } from "@ember/array";
+import { isPresent } from "@ember/utils";
+import EmberError from "@ember/error";
+import { assert } from "@ember/debug";
 
 const SOURCE_POINTER_REGEXP = /^\/?data\/(attributes|relationships)\/(.*)/;
 const SOURCE_POINTER_PRIMARY_REGEXP = /^\/?data/;
-const PRIMARY_ATTRIBUTE_KEY = 'base';
+const PRIMARY_ATTRIBUTE_KEY = "base";
 
 /**
   A `DS.AdapterError` is used by an adapter to signal that an error occurred
@@ -74,13 +74,13 @@ const PRIMARY_ATTRIBUTE_KEY = 'base';
   @class AdapterError
   @namespace DS
 */
-export function AdapterError(errors, message = 'Adapter operation failed') {
+export function AdapterError(errors, message = "Adapter operation failed") {
   this.isAdapterError = true;
   EmberError.call(this, message);
 
   this.errors = errors || [
     {
-      title: 'Adapter Error',
+      title: "Adapter Error",
       detail: message
     }
   ];
@@ -94,7 +94,10 @@ function extendFn(ErrorClass) {
 
 function extend(ParentErrorClass, defaultMessage) {
   let ErrorClass = function(errors, message) {
-    assert('`AdapterError` expects json-api formatted errors array.', Array.isArray(errors || []));
+    assert(
+      "`AdapterError` expects json-api formatted errors array.",
+      Array.isArray(errors || [])
+    );
     ParentErrorClass.call(this, errors, message || defaultMessage);
   };
   ErrorClass.prototype = Object.create(ParentErrorClass.prototype);
@@ -165,8 +168,10 @@ AdapterError.extend = extendFn(AdapterError);
   @class InvalidError
   @namespace DS
 */
-export const InvalidError = extend(AdapterError,
-  'The adapter rejected the commit because it was invalid');
+export const InvalidError = extend(
+  AdapterError,
+  "The adapter rejected the commit because it was invalid"
+);
 
 /**
   A `DS.TimeoutError` is used by an adapter to signal that a request
@@ -200,8 +205,10 @@ export const InvalidError = extend(AdapterError,
   @class TimeoutError
   @namespace DS
 */
-export const TimeoutError = extend(AdapterError,
-  'The adapter operation timed out');
+export const TimeoutError = extend(
+  AdapterError,
+  "The adapter operation timed out"
+);
 
 /**
   A `DS.AbortError` is used by an adapter to signal that a request to
@@ -212,8 +219,10 @@ export const TimeoutError = extend(AdapterError,
   @class AbortError
   @namespace DS
 */
-export const AbortError = extend(AdapterError,
-  'The adapter operation was aborted');
+export const AbortError = extend(
+  AdapterError,
+  "The adapter operation was aborted"
+);
 
 /**
   A `DS.UnauthorizedError` equates to a HTTP `401 Unauthorized` response
@@ -248,7 +257,10 @@ export const AbortError = extend(AdapterError,
   @class UnauthorizedError
   @namespace DS
 */
-export const UnauthorizedError = extend(AdapterError, 'The adapter operation is unauthorized');
+export const UnauthorizedError = extend(
+  AdapterError,
+  "The adapter operation is unauthorized"
+);
 
 /**
   A `DS.ForbiddenError` equates to a HTTP `403 Forbidden` response status.
@@ -260,7 +272,10 @@ export const UnauthorizedError = extend(AdapterError, 'The adapter operation is 
   @class ForbiddenError
   @namespace DS
 */
-export const ForbiddenError = extend(AdapterError, 'The adapter operation is forbidden');
+export const ForbiddenError = extend(
+  AdapterError,
+  "The adapter operation is forbidden"
+);
 
 /**
   A `DS.NotFoundError` equates to a HTTP `404 Not Found` response status.
@@ -298,7 +313,10 @@ export const ForbiddenError = extend(AdapterError, 'The adapter operation is for
   @class NotFoundError
   @namespace DS
 */
-export const NotFoundError = extend(AdapterError, 'The adapter could not find the resource');
+export const NotFoundError = extend(
+  AdapterError,
+  "The adapter could not find the resource"
+);
 
 /**
   A `DS.ConflictError` equates to a HTTP `409 Conflict` response status.
@@ -310,7 +328,10 @@ export const NotFoundError = extend(AdapterError, 'The adapter could not find th
   @class ConflictError
   @namespace DS
 */
-export const ConflictError = extend(AdapterError, 'The adapter operation failed due to a conflict');
+export const ConflictError = extend(
+  AdapterError,
+  "The adapter operation failed due to a conflict"
+);
 
 /**
   A `DS.ServerError` equates to a HTTP `500 Internal Server Error` response
@@ -320,7 +341,10 @@ export const ConflictError = extend(AdapterError, 'The adapter operation failed 
   @class ServerError
   @namespace DS
 */
-export const ServerError = extend(AdapterError, 'The adapter operation failed due to a server error');
+export const ServerError = extend(
+  AdapterError,
+  "The adapter operation failed due to a server error"
+);
 
 /**
   Convert an hash of errors into an array with errors in JSON-API format.
@@ -371,14 +395,14 @@ export const ServerError = extend(AdapterError, 'The adapter operation failed du
 export function errorsHashToArray(errors) {
   let out = [];
 
-  if (Ember.isPresent(errors)) {
-    Object.keys(errors).forEach((key) => {
-      let messages = Ember.makeArray(errors[key]);
+  if (isPresent(errors)) {
+    Object.keys(errors).forEach(key => {
+      let messages = makeArray(errors[key]);
       for (let i = 0; i < messages.length; i++) {
-        let title = 'Invalid Attribute';
+        let title = "Invalid Attribute";
         let pointer = `/data/attributes/${key}`;
         if (key === PRIMARY_ATTRIBUTE_KEY) {
-          title = 'Invalid Document';
+          title = "Invalid Document";
           pointer = `/data`;
         }
         out.push({
@@ -438,14 +462,16 @@ export function errorsHashToArray(errors) {
 export function errorsArrayToHash(errors) {
   let out = {};
 
-  if (Ember.isPresent(errors)) {
-    errors.forEach((error) => {
+  if (isPresent(errors)) {
+    errors.forEach(error => {
       if (error.source && error.source.pointer) {
         let key = error.source.pointer.match(SOURCE_POINTER_REGEXP);
 
         if (key) {
           key = key[2];
-        } else if (error.source.pointer.search(SOURCE_POINTER_PRIMARY_REGEXP) !== -1) {
+        } else if (
+          error.source.pointer.search(SOURCE_POINTER_PRIMARY_REGEXP) !== -1
+        ) {
           key = PRIMARY_ATTRIBUTE_KEY;
         }
 
